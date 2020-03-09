@@ -1,0 +1,228 @@
+﻿<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <title>WebApiStudentData - Client - EducationLine</title>
+    <script src="Scripts/jquery-3.3.1.min.js"></script>
+    <script src="Scripts/bootstrap.js"></script>
+    <link href="Content/bootstrap.css" rel="stylesheet" />
+    <link href="StyleSheet/StyleSheet.css" rel="stylesheet" />
+    <script type="text/javascript" src="Project_Scripts/Settings.js"></script>
+    <script type="text/javascript" src="Project_Scripts/TypeScriptStuff.js"></script>
+</head>
+
+<body>
+    <a href="Index.html">Gå tilbage til Hovedside</a>
+    <br />
+    <br />
+
+    <select id="EducationName"></select>
+
+    <br />
+    <br />
+
+    <div class="row EducationLines" id="EducationLinesOnChoosenEducation">
+
+    </div>
+
+    <div class="row">
+        <table id="tblDynamic" class="table table-bordered">
+            <thead>
+                <tr>
+                    <td>EducationLine ID</td>
+                    <td>EducationLine Navn</td>
+                </tr>
+            </thead>
+            <tbody class="EducationLineData"></tbody>
+        </table>
+    </div>
+
+    <div class="row">
+        -------------------------------------------------------------------------------------------------------
+    </div>
+
+    <br />
+
+    <div class="row">
+        <div class="col-sm-12">
+            <label for="lblEducationLineName">Indtast Uddannelseslinje navn : </label>
+            <input type="text" id="txtEducationLineName" />
+        </div>
+    </div>
+
+    <br />
+
+    <div class="row">
+        <div class="col-sm-12">
+            <button type="button" id="btnEducationLineNameHandle">Indsæt ny Uddannelses Linje på : </button>
+        </div>
+    </div>
+</body>
+
+</html>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        var SelectedEducationID;
+        var SelectedEducationName;
+
+        GetReturnNumbersAndReturnStringFromWebAPI();
+        GetEducations();
+
+        function AddDataRowToTable(EducationLineID, EducationLineName) {
+            WorkString = "<tr class='EducationLineNames'>";
+            WorkString += "<td>";
+            WorkString += EducationLineID;
+            WorkString += "<td class='EducationLineName'>";
+            WorkString += EducationLineName;
+            // Vil man kunne ændre og slette uddannelseslinjer skal/man implementere koden
+            // herunder. Dette er udeladt her for ikke at få alt for meget kode med i dette 
+            // "lille" eksempel. 
+            //WorkString += "<td>";
+            //WorkString += "<button type='button'";
+            //WorkString += "value='" + EducationLineID + "' ";
+            //WorkString += "class='" + EditCourseNameClassName + "'";
+            //WorkString += ">Ret kursus/fag Navn (" + CourseID + ") </button>";
+            //WorkString += "<td>";
+            //WorkString += "<button type='button'";
+            //WorkString += "value='" + CourseID + "' ";
+            //WorkString += "class='" + DeleteCourseNameClassName + "'";
+            //WorkString += ">Slet kursus/fag Navn (" + CourseID + ") </button>";
+            WorkString += "</tr>";
+            $(".EducationLineData").append(WorkString);
+        }
+
+        function DecodejSonEducationLineData(jSonData)
+        {
+            $(".EducationLineData").empty();
+
+            $.each(jSonData, function (key, item) {
+                AddDataRowToTable(item.EducationLineID, item.EducationLineName);
+            });
+        }
+
+        function GetEducationLinesOnEducation(SelectedEducationID, SelectedEducationName) {
+            $(".EducationLines").empty();
+            EducationLinesHeadString = "<h3>Uddannelseslinjer på " + SelectedEducationName + "</h3>";
+            $(".EducationLines").append(EducationLinesHeadString);
+
+            WorkString = " Indsæt ny Uddannelses Linje på : ";
+            WorkString += SelectedEducationName;
+            $("#btnEducationLineNameHandle").text(WorkString);
+
+            $.ajax({
+                url: WEB_API_URL_StudentData_EducationLine + "?id=" + SelectedEducationID,
+                type: 'GET',
+                dataType: "json",
+                headers: {
+                    accept: "application/json",
+                },
+                success: function (data) {
+                    //On ajax success do this
+                    DecodejSonEducationLineData(data);
+                },
+                error: function (xhr, ajaxOptions, thrownError) {
+                    //On ajax error do this
+                    alert(xhr.status);
+                    alert(ajaxOptions);
+                    alert(thrownError);
+                }
+            });
+
+        }
+
+        function AddDataRowToDropDownList(EducationID, EducationName) {
+            var option = document.createElement("option");
+            option.value = EducationID;
+            option.text = EducationName;
+            $("#EducationName").append(option);
+        }
+
+        function GetAndShowEducationLinesOnSelectedEducation() {
+            SelectedEducationID = $("#EducationName").find(":selected").val();
+            SelectedEducationName = $("#EducationName").find(":selected").text();
+
+            GetEducationLinesOnEducation(SelectedEducationID, SelectedEducationName);
+        }
+
+        function DecodejSonEducationData(jSonDataDeserialized) {
+            $.each(jSonDataDeserialized, function (key, item) {
+                AddDataRowToDropDownList(item.EducationID, item.EducationName);
+            });
+            if ($("#EducationName").length > 0) {
+                $("#EducationName :nth-child(1)").prop('selected', true);
+            }
+            GetAndShowEducationLinesOnSelectedEducation();
+        }
+
+        function GetEducations() {
+            $.ajax({
+                url: WEB_API_URL_StudentData_Eductaion,
+                type: 'GET',
+                dataType: "json",
+                headers: {
+                    accept: "application/json",
+                },
+                success: function (data) {
+                    //On ajax success do this
+                    jSonDataDeserialized = Deserialize_jSOnData(data);
+                    if (jSonDecodingError != jSonDataDeserialized) {
+                        DecodejSonEducationData(jSonDataDeserialized);
+                    }
+                },
+                error: function (xhr, ajaxOptions, thrownError) {
+                    //On ajax error do this
+                    alert(xhr.status);
+                    alert(ajaxOptions);
+                    alert(thrownError);
+                }
+            });
+        }
+
+        $("#EducationName").change(function () {
+            GetAndShowEducationLinesOnSelectedEducation();
+        });
+
+
+        function SaveEducationLineOnEducation() {
+            var data = { EducationLineName: $("#txtEducationLineName").val(), EducationID: SelectedEducationID}
+            $.ajax({
+                url: WEB_API_URL_StudentData_EducationLine + "?UserName=" + UserName + "&Password=" + Password,
+                type: 'POST',
+                data: JSON.stringify(data),
+                dataType: 'json',
+                headers: {
+                    accept: "application/json",
+                    "content-type": "application/json",
+                },
+                success: function (dataBack) {
+                    //On ajax success do this
+                    if (OperationOkHigherValueThanHere < dataBack) {
+                        AddDataRowToTable(dataBack, $("#txtEducationLineName").val());
+                        $("#txtEducationLineName").val("");
+                    }
+                    else {
+                        alert("Noget gik galt, da EducationLine navn " + $("#txtEducationLineName").val() + " skulle gemmes !!! Fejlnummeret er : " + dataBack + ". Og fejlbeskeden er : " + FindReturnNumberString(ReturnCodeAndReturnStringFromWEBApiList, dataBack));
+                    }
+                },
+                error: function (xhr, ajaxOptions, thrownError) {
+                    //On ajax error do this
+                    alert(xhr.status);
+                    alert(ajaxOptions);
+                    alert(thrownError);
+                }
+            });
+        }
+
+        $("#btnEducationLineNameHandle").click(function () {
+            if ($("#txtEducationLineName").val().length > 5) {
+                SaveEducationLineOnEducation();
+            }
+            else {
+                alert("ANgiv mindst 5 karakterer i Uddannelseslinje navn !!!");
+            }
+        });
+
+    });
+</script>

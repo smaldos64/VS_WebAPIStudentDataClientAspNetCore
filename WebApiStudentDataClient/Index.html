@@ -1,0 +1,357 @@
+﻿<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <title>WebApiStudentData - Client</title>
+    <script src="Scripts/jquery-3.3.1.min.js"></script>
+    <script src="Scripts/bootstrap.js"></script>
+    <link href="Content/bootstrap.css" rel="stylesheet" />
+    <link href="StyleSheet/StyleSheet.css" rel="stylesheet" />
+    <script type="text/javascript" src="Project_Scripts/Settings.js"></script>
+    <script type="text/javascript" src="Project_Scripts/TypeScriptStuff.js"></script>
+</head>
+
+<body>
+    <a href="EducationLine.html">Gå til Education Side</a>
+    <br />
+    <br />
+
+    <div class="table-responsive">
+        <table id="tblDynamic" class="table table-bordered">
+            <thead>
+                <tr>
+                    <td>Kursus ID</td>
+                    <td>Kursus/Fag Navn</td>
+                </tr>
+            </thead>
+            <tbody class="CourseData"></tbody>
+        </table>
+    </div>
+
+    <div class="row">
+        <div class="col-sm-12">
+            <label for="lblCourseName">Indtast Kursus/Fag navn : </label>
+            <input type="text" id="txtCourseName" />
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-sm-12">
+            <button type="button" id="btnCourseNameHandle" value="CourseOperation_ENUM.Save_Course_Data">Indsæt nyt Kursus Navn</button>
+        </div>
+    </div>
+
+    <div class="ErrorMessages">
+
+    </div>
+
+    <div class="row">
+        -------------------------------------------------------------
+    </div>
+
+    <div class="row">
+        Udskrift af TypeScript Course objekter herunder =>
+    </div>
+
+    <div class="row" id="TypeScriptDemo">
+
+    </div>
+
+    <div class="row">
+        -------------------------------------------------------------
+    </div>
+
+    <div class="row">
+        Udskrift af Retur Koder og Retur Kode Strenge herunder. Bemærk at en Retur Kode mindre end 0 er lig med
+        en fejlkode =>
+    </div>
+
+    <div class="row" id="ReturnCodesAndReturnString">
+
+    </div>
+</body>
+
+</html>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        var numberOfRowsInTable = 0;
+        var EditCourseNameClassName = "EditCourseName";
+        var DeleteCourseNameClassName = "DeleteCourseName";
+
+        var CurrentUserSelection = CourseOperation_ENUM.Save_Course_Data;
+
+        var CourseList = [];
+        //var ReturnCodeAndReturnStringFromWEBApiList = [];
+
+        GetCourseData();
+        //GetReturnCodesAndReturnStrings();
+        // Denne funktionalitet skal lige implementeres igen på det nye Asp.Net.Core Web API !!!
+
+        function PrintTypeScriptCourseObjectsInArray() {
+            // javaScript(TypeScript kode => Udskrift af alle Course objekter i vores CourseList
+            for (var Counter = 0; Counter < CourseList.length; Counter++) {
+                CourseList[Counter].list();
+            }
+            document.getElementById("TypeScriptDemo").innerHTML = CourseList;
+        }
+
+        function EditTypeScriptCourseObjectsInArray(CourseID, CourseName) {
+            var Counter = 0;
+
+            do {
+                if (CourseList[Counter].CourseID == parseInt(CourseID)) {
+                    CourseList[Counter].CourseName = CourseName;
+                }
+            } while ((CourseList[Counter].CourseID != CourseID) && (++Counter < CourseList.length));
+
+            PrintTypeScriptCourseObjectsInArray();
+        }
+
+        function DeleteTypeScriptCourseObjectInArray(CourseID) {
+            var Counter = 0;
+            var Found = false;
+
+            do {
+                if (CourseList[Counter].CourseID == parseInt(CourseID)) {
+                    Found = true;
+                }
+                else {
+                    Counter++;
+                }
+            } while ((false == Found) && (Counter < CourseList.length));
+
+            if (true == Found) {
+                CourseList.splice(Counter, 1);
+                PrintTypeScriptCourseObjectsInArray();
+            }
+        }
+
+        function UpdatePagerForSide() {
+            //try {
+            //    $(".StudentNames").AddPageComponentsDynamic(
+            //        {
+            //            Number_Of_Paging_Elements_On_Side: 6,
+            //            MaxNumberOfPagerPagesInPagerSlider: 4,
+            //            PagerClassName: "StudentNames",
+            //            PagerStyleTable: true,
+            //            UsePagerElementOnSideSelector: true,
+            //        }
+            //    );
+            //}
+            //catch (Exception) {
+            //    $(".ErrorMessages").text(Exception);
+            //}
+
+            PrintTypeScriptCourseObjectsInArray();
+        }
+
+        function DecodejSONStudentData(jSonData) {
+            $.each(jSonData, function (key, item) {
+                //AddDataRowToTable(item.CourseID, item.CourseName); 
+                // Brug syntaksen herover, hvis du kommunikerer op imod det "gamle" Asp.Net Framework Web API.
+                AddDataRowToTable(item.courseID, item.courseName);
+                // Brug syntaksen herover, hvis du kommunikerer op imod det "nye" Asp.Net.Core Web API.
+            });
+        }
+
+        function AddDataRowToTable(CourseID, CourseName) {
+            WorkString = "<tr class='CourseNames'>";
+            WorkString += "<td>";
+            WorkString += CourseID;
+            WorkString += "<td class='CourseName'>";
+            WorkString += CourseName;
+            WorkString += "<td>";
+            WorkString += "<button type='button'";
+            WorkString += "value='" + CourseID + "' ";
+            WorkString += "class='" + EditCourseNameClassName + "'";
+            WorkString += ">Ret kursus/fag Navn (" + CourseID + ") </button>";
+            WorkString += "<td>";
+            WorkString += "<button type='button'";
+            WorkString += "value='" + CourseID + "' ";
+            WorkString += "class='" + DeleteCourseNameClassName + "'";
+            WorkString += ">Slet kursus/fag Navn (" + CourseID + ") </button>";
+            WorkString += "</tr>";
+            $(".CourseData").append(WorkString);
+
+            // Og herunder er der vist lidt TypeScript kode.
+            CourseList.push(new Course(CourseID, CourseName));
+        }
+
+        function PrintTypeScriptReturnCodesAndReturnStringsObjectsInArray() {
+            // javaScript(TypeScript kode => Udskrift af alle ReturnCodeAndReturnStringFromWEBApi 
+            // objekter i vores ReturnCodeAndReturnStringFromWEBApiList
+            
+            document.getElementById("ReturnCodesAndReturnString").innerHTML = ReturnCodeAndReturnStringFromWEBApiList;
+        }
+
+        function DecodejSONReturnCodesAndReturnStrings(jSonDataDeserialized) {
+            $.each(jSonDataDeserialized, function (key, item) {
+                ReturnCodeAndReturnStringFromWEBApiList.push(new ReturnCodeAndReturnStringFromWEBApi(item.ReturnCode, item.ReturnString));
+            });
+        }
+
+        function GetReturnCodesAndReturnStrings() {
+            returnCode = GetReturnNumbersAndReturnStringFromWebAPI();
+            if (jSonDecodingOk == returnCode) {
+                PrintTypeScriptReturnCodesAndReturnStringsObjectsInArray();
+            }
+        }
+
+        function GetCourseData() {
+            $(".CourseData").empty();
+
+            $.ajax({
+                url: WEB_API_URL_StudentData_Course + "?UserName=" + UserName + "&Password=" + Password,
+                type: 'GET',
+                dataType: "json",
+                crossDomain: true,
+                headers: {
+                    accept: "application/json",
+                },
+                success: function (data) {
+                    //On ajax success do this
+                    DecodejSONStudentData(data);
+                    UpdatePagerForSide();
+                },
+                error: function (xhr, ajaxOptions, thrownError) {
+                    //On ajax error do this
+                    alert(xhr.status);
+                    alert(ajaxOptions);
+                    alert(thrownError);
+                }
+            });
+        }
+
+        $("#btnCourseNameHandle").click(function () {
+            var CourseName = $("#txtCourseName").val();
+            if (CourseOperation_ENUM.Save_Course_Data == CurrentUserSelection) {
+                var data = { CourseName: CourseName }
+                //var data = { courseName: CourseName }
+                $.ajax({
+                    url: WEB_API_URL_StudentData_Course + "?UserName=" + UserName + "&Password=" + Password,
+                    type: 'POST',
+                    data: JSON.stringify(data),
+                    dataType: 'json',
+                    headers: {
+                        accept: "application/json",
+                        "content-type": "application/json",
+                    },
+                    success: function (dataBack) {
+                        //On ajax success do this
+                        if (OperationOkHigherValueThanHere < dataBack) {
+                            AddDataRowToTable(dataBack, CourseName);
+                            $("#txtCourseName").val("");
+                            // Og herunder er der vist lidt TypeScript kode.
+                            PrintTypeScriptCourseObjectsInArray();
+                        }
+                        else {
+                            alert("Noget gik galt, da Kursus/Fag navn " + CourseName + " skulle gemmes !!! Fejlnummeret er : " + dataBack + ". Og fejlbeskeden er : " + FindReturnNumberString(ReturnCodeAndReturnStringFromWEBApiList, dataBack));
+                        }
+                    },
+                    error: function (xhr, ajaxOptions, thrownError) {
+                        //On ajax error do this
+                        alert(xhr.status);
+                        alert(ajaxOptions);
+                        alert(thrownError);
+                    }
+                });
+            }
+            else {
+                //var data = { CourseID: CourseID, CourseName: CourseName }
+                // Brug syntaksen herover, hvis du kommunikerer op imod det "gamle" Asp.Net Framework Web API.
+                var data = { id: CourseID, CourseName: CourseName }
+                // Brug syntaksen herover, hvis du kommunikerer op imod det "nye" Asp.Net.Core Web API.
+                // Det kan se mærkeligt ud, at man er nødt til at omdøbe CourseID feltets navn til id.
+                // Men gør man ikke det, får man en HTTP Fejl 400 fra Asp.NetCore Web API'et.
+                // Som jeg ser det, er der her tale om en fejl i Asp.Net Core API'et !!!!!
+                $.ajax({
+                    url: WEB_API_URL_StudentData_Course + "/" + CourseID + "?UserName=" + UserName + "&Password=" + Password,
+                    type: 'PUT',
+                    data: JSON.stringify(data),
+                    dataType: 'json',
+                    //contentType: 'applcation/json',
+                    headers: {
+                        accept: "application/json",
+                        "content-type": "application/json",
+                    },
+                    success: function (dataBack) {
+                        //On ajax success do this
+                        if (OperationOkHigherValueThanHere < dataBack) {
+                            CurrentRowCells = CurrentRow.children();
+                            CurrentRowCells.eq(1).text($("#txtCourseName").val());
+                            $("#txtCourseName").val("");
+                            CurrentUserSelection = CourseOperation_ENUM.Save_Course_Data;
+                            HandleButtonValueAndText(CurrentUserSelection);
+                            EditTypeScriptCourseObjectsInArray(CourseID, CourseName);
+                        }
+                        else {
+                            alert("Noget gik galt, da Kursus/Fag navn " + CourseName + " skulle opdateres !!! Fejlnummeret er : " + dataBack + ". Og fejlbeskeden er : " + FindReturnNumberString(ReturnCodeAndReturnStringFromWEBApiList, dataBack));
+                        }
+                    },
+                    error: function (xhr, ajaxOptions, thrownError) {
+                        //On ajax error do this
+                        alert(xhr.status);
+                        alert(ajaxOptions);
+                        alert(thrownError);
+                    }
+                });
+            }
+        });
+
+        $('body').on('click', '.' + DeleteCourseNameClassName, function () {
+            CourseID = $(this).val();
+            CurrentRow = $(this).closest('tr');
+            CurrentRowCells = CurrentRow.children();
+            CourseName = CurrentRowCells.eq(1).text();
+
+            if (confirm("Ønsker du slette kurset/faget " + CourseName + " ?")) {
+                var data = { CourseID: CourseID, CourseName: CourseName }
+                $.ajax({
+                    //url: WEB_API_URL_StudentData_Course + "?id=" + CourseID + "&UserName=" + UserName + "&Password=" + Password,
+                    url: WEB_API_URL_StudentData_Course + "/" + CourseID + "?UserName=" + UserName + "&Password=" + Password,
+                    type: 'DELETE',
+                    success: function (dataBack) {
+                        //On ajax success do this
+                        if (OperationOkHigherValueThanHere < dataBack) {
+                            CurrentRow.remove();
+                            DeleteTypeScriptCourseObjectInArray(CourseID);
+                        }
+                        else {
+                            alert("Noget gik galt, da Kursus/Fag navn " + CourseName + " skulle slettes !!! Fejlnummeret er : " + dataBack + ". Og fejlbeskeden er : " + FindReturnNumberString(ReturnCodeAndReturnStringFromWEBApiList, dataBack));
+                        }
+                        
+                    },
+                    error: function (xhr, ajaxOptions, thrownError) {
+                        //On ajax error do this
+                        alert(xhr.status);
+                        alert(ajaxOptions);
+                        alert(thrownError);
+                    }
+                });
+            }
+        });
+
+        $('body').on('click', '.' + EditCourseNameClassName, function () {
+            CourseID = $(this).val();
+            CurrentRow = $(this).closest('tr');
+            CurrentRowCells = CurrentRow.children();
+            CourseName = CurrentRowCells.eq(1).text();
+
+            $("#txtCourseName").val(CourseName);
+            CurrentUserSelection = CourseOperation_ENUM.Edit_Course_Data;
+            HandleButtonValueAndText(CurrentUserSelection);
+        });
+
+        function HandleButtonValueAndText(ButtonState) {
+            $("#btnCourseNameHandle").val(ButtonState);
+            if (CourseOperation_ENUM.Save_Course_Data == ButtonState) {
+                $("#btnCourseNameHandle").text("Indsæt nyt Kursus/Fag Navn");
+            }
+            else {
+                $("#btnCourseNameHandle").text("Ret Kursus/Fag Navn");
+            }
+        }
+    });
+</script>
