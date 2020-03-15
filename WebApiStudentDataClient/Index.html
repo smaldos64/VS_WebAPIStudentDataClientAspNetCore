@@ -63,11 +63,12 @@
     </div>
 
     <div class="row">
+        <br />
         Udskrift af Retur Koder og Retur Kode Strenge herunder. Bemærk at en Retur Kode mindre end 0 er lig med
         en fejlkode =>
     </div>
 
-    <div class="row" id="ReturnCodesAndReturnString">
+    <div class="row BoldText" id="ReturnCodesAndReturnString">
 
     </div>
 </body>
@@ -86,7 +87,7 @@
         //var ReturnCodeAndReturnStringFromWEBApiList = [];
 
         GetCourseData();
-        //GetReturnCodesAndReturnStrings();
+        GetReturnCodesAndReturnStrings();
         // Denne funktionalitet skal lige implementeres igen på det nye Asp.Net.Core Web API !!!
 
         function PrintTypeScriptCourseObjectsInArray() {
@@ -160,7 +161,7 @@
             WorkString = "<tr class='CourseNames'>";
             WorkString += "<td>";
             WorkString += CourseID;
-            WorkString += "<td class='CourseName'>";
+            WorkString += "<td class='CourseName'><b>";
             WorkString += CourseName;
             WorkString += "<td>";
             WorkString += "<button type='button'";
@@ -183,15 +184,13 @@
             // javaScript(TypeScript kode => Udskrift af alle ReturnCodeAndReturnStringFromWEBApi 
             // objekter i vores ReturnCodeAndReturnStringFromWEBApiList
             
-            document.getElementById("ReturnCodesAndReturnString").innerHTML = ReturnCodeAndReturnStringFromWEBApiList;
+            //document.getElementById("ReturnCodesAndReturnString").innerHTML = ReturnCodeAndReturnStringFromWEBApiList;
+            for (Counter = 0; Counter < ReturnCodeAndReturnStringFromWEBApiList.length; Counter++) {
+                $("#ReturnCodesAndReturnString").append("<br>" + ReturnCodeAndReturnStringFromWEBApiList[Counter]);
+            }
+            
         }
-
-        function DecodejSONReturnCodesAndReturnStrings(jSonDataDeserialized) {
-            $.each(jSonDataDeserialized, function (key, item) {
-                ReturnCodeAndReturnStringFromWEBApiList.push(new ReturnCodeAndReturnStringFromWEBApi(item.ReturnCode, item.ReturnString));
-            });
-        }
-
+    
         function GetReturnCodesAndReturnStrings() {
             returnCode = GetReturnNumbersAndReturnStringFromWebAPI();
             if (jSonDecodingOk == returnCode) {
@@ -262,6 +261,7 @@
                 //var data = { CourseID: CourseID, CourseName: CourseName }
                 // Brug syntaksen herover, hvis du kommunikerer op imod det "gamle" Asp.Net Framework Web API.
                 var data = { id: CourseID, CourseName: CourseName }
+                //var data = { CourseName: CourseName }
                 // Brug syntaksen herover, hvis du kommunikerer op imod det "nye" Asp.Net.Core Web API.
                 // Det kan se mærkeligt ud, at man er nødt til at omdøbe CourseID feltets navn til id.
                 // Men gør man ikke det, får man en HTTP Fejl 400 fra Asp.NetCore Web API'et.
@@ -281,6 +281,7 @@
                         if (OperationOkHigherValueThanHere < dataBack) {
                             CurrentRowCells = CurrentRow.children();
                             CurrentRowCells.eq(1).text($("#txtCourseName").val());
+                            CurrentRowCells.eq(1).addClass("BoldText");
                             $("#txtCourseName").val("");
                             CurrentUserSelection = CourseOperation_ENUM.Save_Course_Data;
                             HandleButtonValueAndText(CurrentUserSelection);

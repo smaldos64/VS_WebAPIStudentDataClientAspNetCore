@@ -85,12 +85,6 @@ function GetReturnNumbersAndReturnStringFromWebAPI() {
             //On ajax success do this
             DecodejSONReturnCodesAndReturnStrings(data);
             ReturnCode = jSonDecodingOk;
-            //jSonDataDeserialized = Deserialize_jSOnData(data);
-            //if (jSonDecodingError != jSonDataDeserialized) {
-            //    DecodejSONReturnCodesAndReturnStrings(jSonDataDeserialized);
-            //    //PrintTypeScriptReturnCodesAndReturnStringsObjectsInArray();
-            //    ReturnCode = jSonDecodingOk;
-            //}
         },
         error: function (xhr, ajaxOptions, thrownError) {
             //On ajax error do this
@@ -107,6 +101,9 @@ function GetReturnNumbersAndReturnStringFromWebAPI() {
 function DecodejSONReturnCodesAndReturnStrings(jSonData) {
     ReturnCodeAndReturnStringFromWEBApiList.splice(0, ReturnCodeAndReturnStringFromWEBApiList.length);
     $.each(jSonData, function (key, item) {
-        ReturnCodeAndReturnStringFromWEBApiList.push(new ReturnCodeAndReturnStringFromWEBApi(item.ReturnCode, item.ReturnString));
+        //ReturnCodeAndReturnStringFromWEBApiList.push(new ReturnCodeAndReturnStringFromWEBApi(item.ReturnCode, item.ReturnString));
+        // Brug syntaksen herover, hvis du kommunikerer op imod det "gamle" Asp.Net Framework Web API.
+        ReturnCodeAndReturnStringFromWEBApiList.push(new ReturnCodeAndReturnStringFromWEBApi(item.returnCode, item.returnString));
+        // Brug syntaksen herover, hvis du kommunikerer op imod det "nye" Asp.Net.Core Web API.
     });
 }

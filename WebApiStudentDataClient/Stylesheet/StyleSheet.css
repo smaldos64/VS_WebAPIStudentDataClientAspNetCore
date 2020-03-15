@@ -13,3 +13,7 @@
 .dl-horizontal dt {
     white-space: normal;
 }
+
+.BoldText{
+    font-weight: bold;
+}
