@@ -20,10 +20,11 @@
     <div class="table-responsive">
         <table id="tblDynamic" class="table table-bordered">
             <thead>
-                <tr>
+                <tr class="BoldText">
                     <td>Kursus ID</td>
                     <td>Kursus/Fag Navn</td>
-                </tr>
+                    <td>Ret Kursus Navn</td>
+                    <td>Slet Kursus</td>
             </thead>
             <tbody class="CourseData"></tbody>
         </table>
@@ -84,12 +85,10 @@
         var CurrentUserSelection = CourseOperation_ENUM.Save_Course_Data;
 
         var CourseList = [];
-        //var ReturnCodeAndReturnStringFromWEBApiList = [];
-
+      
         GetCourseData();
         GetReturnCodesAndReturnStrings();
-        // Denne funktionalitet skal lige implementeres igen på det nye Asp.Net.Core Web API !!!
-
+        
         function PrintTypeScriptCourseObjectsInArray() {
             // javaScript(TypeScript kode => Udskrift af alle Course objekter i vores CourseList
             for (var Counter = 0; Counter < CourseList.length; Counter++) {
@@ -150,10 +149,13 @@
 
         function DecodejSONStudentData(jSonData) {
             $.each(jSonData, function (key, item) {
-                //AddDataRowToTable(item.CourseID, item.CourseName); 
-                // Brug syntaksen herover, hvis du kommunikerer op imod det "gamle" Asp.Net Framework Web API.
-                AddDataRowToTable(item.courseID, item.courseName);
-                // Brug syntaksen herover, hvis du kommunikerer op imod det "nye" Asp.Net.Core Web API.
+                if (FrameWorkSelector == WebApiTechnology.Asp_Net) {
+                    AddDataRowToTable(item.CourseID, item.CourseName); 
+                }
+
+                if (FrameWorkSelector == WebApiTechnology.Asp_Net_Core) {
+                    AddDataRowToTable(item.courseID, item.courseName);
+                }
             });
         }
 
@@ -184,7 +186,6 @@
             // javaScript(TypeScript kode => Udskrift af alle ReturnCodeAndReturnStringFromWEBApi 
             // objekter i vores ReturnCodeAndReturnStringFromWEBApiList
             
-            //document.getElementById("ReturnCodesAndReturnString").innerHTML = ReturnCodeAndReturnStringFromWEBApiList;
             for (Counter = 0; Counter < ReturnCodeAndReturnStringFromWEBApiList.length; Counter++) {
                 $("#ReturnCodesAndReturnString").append("<br>" + ReturnCodeAndReturnStringFromWEBApiList[Counter]);
             }
@@ -227,7 +228,6 @@
             var CourseName = $("#txtCourseName").val();
             if (CourseOperation_ENUM.Save_Course_Data == CurrentUserSelection) {
                 var data = { CourseName: CourseName }
-                //var data = { courseName: CourseName }
                 $.ajax({
                     url: WEB_API_URL_StudentData_Course + "?UserName=" + UserName + "&Password=" + Password,
                     type: 'POST',
@@ -239,6 +239,7 @@
                     },
                     success: function (dataBack) {
                         //On ajax success do this
+                        dataBack = TrimReturnString(dataBack);
                         if (OperationOkHigherValueThanHere < dataBack) {
                             AddDataRowToTable(dataBack, CourseName);
                             $("#txtCourseName").val("");
@@ -258,26 +259,38 @@
                 });
             }
             else {
-                //var data = { CourseID: CourseID, CourseName: CourseName }
-                // Brug syntaksen herover, hvis du kommunikerer op imod det "gamle" Asp.Net Framework Web API.
-                var data = { id: CourseID, CourseName: CourseName }
-                //var data = { CourseName: CourseName }
-                // Brug syntaksen herover, hvis du kommunikerer op imod det "nye" Asp.Net.Core Web API.
-                // Det kan se mærkeligt ud, at man er nødt til at omdøbe CourseID feltets navn til id.
-                // Men gør man ikke det, får man en HTTP Fejl 400 fra Asp.NetCore Web API'et.
-                // Som jeg ser det, er der her tale om en fejl i Asp.Net Core API'et !!!!!
+                if (FrameWorkSelector == WebApiTechnology.Asp_Net) {
+                    var data = { CourseID: CourseID, CourseName: CourseName }
+                    //var URL = WEB_API_URL_StudentData_Course + "?" + CourseID + "&UserName=" + UserName + "&Password=" + Password;
+                    var URL = WEB_API_URL_StudentData_Course + "/" + CourseID + "?UserName=" + UserName + "&Password=" + Password;
+                }
+
+                if (FrameWorkSelector == WebApiTechnology.Asp_Net_Core) {
+                    var data = { id: CourseID, CourseName: CourseName }
+                    //var data = { CourseName: CourseName }
+                    // Det kan se mærkeligt ud, at man er nødt til at omdøbe CourseID feltets navn til id.
+                    // Men gør man ikke det, får man en HTTP Fejl 400 fra Asp.Net Core Web API'et.
+                    // Som jeg ser det, er der her tale om en fejl i Asp.Net Core API'et !!!!!
+                    // Man kan også helt udelade CourseID feltet. Så vil man ogs¨ramme den rigtige
+                    // metode i Wep API'ets controller.
+                    // På grund af denne "fejl" i Asp.Net Core Web API'et har jeg indført en compiler define
+                    // ASPNET_CORE_BUG i Asp.Net Core Web API'et. Denne define bevirker, at id feltet fra URL
+                    // til en HTTP Put bliver kopieret over i det rigtige id felt for en given struktur.
+                    var URL = WEB_API_URL_StudentData_Course + "/" + CourseID + "?UserName=" + UserName + "&Password=" + Password;
+                }
+                
                 $.ajax({
-                    url: WEB_API_URL_StudentData_Course + "/" + CourseID + "?UserName=" + UserName + "&Password=" + Password,
+                    url: URL,
                     type: 'PUT',
                     data: JSON.stringify(data),
                     dataType: 'json',
-                    //contentType: 'applcation/json',
                     headers: {
                         accept: "application/json",
                         "content-type": "application/json",
                     },
                     success: function (dataBack) {
                         //On ajax success do this
+                        dataBack = TrimReturnString(dataBack);
                         if (OperationOkHigherValueThanHere < dataBack) {
                             CurrentRowCells = CurrentRow.children();
                             CurrentRowCells.eq(1).text($("#txtCourseName").val());
@@ -309,12 +322,20 @@
 
             if (confirm("Ønsker du slette kurset/faget " + CourseName + " ?")) {
                 var data = { CourseID: CourseID, CourseName: CourseName }
+                if (FrameWorkSelector == WebApiTechnology.Asp_Net) {
+                    //var URL = WEB_API_URL_StudentData_Course + "?" + CourseID + "&UserName=" + UserName + "&Password=" + Password;
+                    var URL = WEB_API_URL_StudentData_Course + "/" + CourseID + "?UserName=" + UserName + "&Password=" + Password;
+                }
+
+                if (FrameWorkSelector == WebApiTechnology.Asp_Net_Core) {
+                    var URL = WEB_API_URL_StudentData_Course + "/" + CourseID + "?UserName=" + UserName + "&Password=" + Password;
+                }
                 $.ajax({
-                    //url: WEB_API_URL_StudentData_Course + "?id=" + CourseID + "&UserName=" + UserName + "&Password=" + Password,
-                    url: WEB_API_URL_StudentData_Course + "/" + CourseID + "?UserName=" + UserName + "&Password=" + Password,
+                    url: URL,
                     type: 'DELETE',
                     success: function (dataBack) {
                         //On ajax success do this
+                        dataBack = TrimReturnString(dataBack);
                         if (OperationOkHigherValueThanHere < dataBack) {
                             CurrentRow.remove();
                             DeleteTypeScriptCourseObjectInArray(CourseID);
